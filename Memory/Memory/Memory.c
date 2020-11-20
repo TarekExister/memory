@@ -1,4 +1,8 @@
+#include "pch.h"
+#include "framework.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <Windows.h>
 #include <TlHelp32.h>
 
@@ -12,17 +16,17 @@ enum procState
 typedef struct _processInfo
 {
 	__vcrt_bool state;
-	void* hproc;
+	HANDLE hproc;
 	int pid;
 	long long int module;
 }_processInfo;
 //[PTR READ FUNCTIONS]
-typedef void (*ptr_read_byte)(_processInfo pi, long long int addr, unsigned char var);
-typedef void (*ptr_read_short)(_processInfo pi, long long int addr, short int var);
-typedef void (*ptr_read_int)(_processInfo pi, long long int addr, int var);
-typedef void (*ptr_read_long)(_processInfo pi, long long int addr, long long int var);
-typedef void (*ptr_read_float)(_processInfo pi, long long int addr, float var);
-typedef void (*ptr_read_double)(_processInfo pi, long long int addr, double var);
+typedef void (*ptr_read_byte)(_processInfo pi, long long int addr, unsigned char* var);
+typedef void (*ptr_read_short)(_processInfo pi, long long int addr, short int* var);
+typedef void (*ptr_read_int)(_processInfo pi, long long int addr, int* var);
+typedef void (*ptr_read_long)(_processInfo pi, long long int addr, long long int* var);
+typedef void (*ptr_read_float)(_processInfo pi, long long int addr, float* var);
+typedef void (*ptr_read_double)(_processInfo pi, long long int addr, double* var);
 typedef void (*ptr_read_bytes)(_processInfo pi, long long int addr, unsigned char* ref, int size);
 //[PTR WRITE FUNCTIONS]
 typedef void (*ptr_write_byte)(_processInfo pi, long long int addr, unsigned char val);
@@ -33,13 +37,13 @@ typedef void (*ptr_write_float)(_processInfo pi, long long int addr, float val);
 typedef void (*ptr_write_double)(_processInfo pi, long long int addr, double val);
 typedef void (*ptr_write_bytes)(_processInfo pi, long long int addr, unsigned char* ref, int size);
 //[READ FUNCTIONS]
-void func_read_byte(_processInfo pi,long long int addr, unsigned char var);
-void func_read_short(_processInfo pi, long long int addr, short int var);
-void func_read_int(_processInfo pi, long long int addr, int var);
-void func_read_long(_processInfo pi, long long int addr, long long int var);
-void func_read_float(_processInfo pi, long long int addr, float var);
-void func_read_double(_processInfo pi, long long int addr, double var);
-void func_read_bytes(_processInfo pi, long long int addr, unsigned char *ref, int size);
+void func_read_byte(_processInfo pi, long long int addr, unsigned char* var);
+void func_read_short(_processInfo pi, long long int addr, short int* var);
+void func_read_int(_processInfo pi, long long int addr, int* var);
+void func_read_long(_processInfo pi, long long int addr, long long int* var);
+void func_read_float(_processInfo pi, long long int addr, float* var);
+void func_read_double(_processInfo pi, long long int addr, double* var);
+void func_read_bytes(_processInfo pi, long long int addr, unsigned char* ref, int size);
 //[WRITE FUNCTIONS]
 void func_write_byte(_processInfo pi, long long int addr, unsigned char val);
 void func_write_short(_processInfo pi, long long int addr, short int val);
@@ -51,7 +55,7 @@ void func_write_bytes(_processInfo pi, long long int addr, unsigned char* ref, i
 //[PROCESS INFO FUNCTION]
 _processInfo getProcInfo(wchar_t* procName, wchar_t* moduleName);
 //[READ STRUCT]
-typedef struct _memoryReader 
+typedef struct _memoryReader
 {
 	ptr_read_byte typeof_byte;
 	ptr_read_short typeof_short;
@@ -79,7 +83,7 @@ typedef struct _memory
 	_memoryWriter* write;
 }_memory;
 //[INITIALIZE READ STRUCT]
-_memoryReader mr = 
+_memoryReader mr =
 {
 	&func_read_byte,
 	&func_read_short,
@@ -107,7 +111,7 @@ _memory mem =
 	&mw
 };
 //[GET PROCESS INFO]
-_processInfo getProcInfo(wchar_t *procName, wchar_t *moduleName)
+_processInfo getProcInfo(wchar_t* procName, wchar_t* moduleName)
 {
 	_processInfo _pi = { 0,NULL,0,0ui64 };
 	PROCESSENTRY32W pEntry = { sizeof(PROCESSENTRY32W) };
@@ -139,10 +143,10 @@ _processInfo getProcInfo(wchar_t *procName, wchar_t *moduleName)
 		{
 			do
 			{
-				if (!lstrcmpW((wchar_t*)mEntry.szModule,moduleName))
+				if (!lstrcmpW((wchar_t*)mEntry.szModule, moduleName))
 				{
 					CloseHandle(hSnapM);
-					_pi.module = mEntry.modBaseAddr;
+					_pi.module = (long long int) mEntry.modBaseAddr;
 					break;
 				}
 
@@ -153,36 +157,36 @@ _processInfo getProcInfo(wchar_t *procName, wchar_t *moduleName)
 	return _pi;
 }
 //[INITIALIZE READ FUNCTIONS]
-void func_read_byte(_processInfo pi, long long int addr, unsigned char var) 
+void func_read_byte(_processInfo pi, long long int addr, unsigned char* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(unsigned char), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(unsigned char), 0);
 }
-void func_read_short(_processInfo pi, long long int addr, short int var)
+void func_read_short(_processInfo pi, long long int addr, short int* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(short int), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(short int), 0);
 }
-void func_read_int(_processInfo pi, long long int addr, int var)
+void func_read_int(_processInfo pi, long long int addr, int* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(int), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(int), 0);
 }
-void func_read_long(_processInfo pi, long long int addr, long long int var)
+void func_read_long(_processInfo pi, long long int addr, long long int* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(long long int), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(long long int), 0);
 }
-void func_read_float(_processInfo pi, long long int addr, float var)
+void func_read_float(_processInfo pi, long long int addr, float* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(float), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(float), 0);
 }
-void func_read_double(_processInfo pi, long long int addr, double var)
+void func_read_double(_processInfo pi, long long int addr, double* var)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &var, sizeof(double), 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, var, sizeof(double), 0);
 }
 void func_read_bytes(_processInfo pi, long long int addr, unsigned char* ref, int size)
 {
-	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, &ref, size, 0);
+	if (pi.state == found) ReadProcessMemory(pi.hproc, (LPCVOID)addr, ref, size, 0);
 }
 //[INITIALIZE WRITE FUNCTIONS]
-void func_write_byte(_processInfo pi, long long int addr, unsigned char val) 
+void func_write_byte(_processInfo pi, long long int addr, unsigned char val)
 {
 	if (pi.state == found) WriteProcessMemory(pi.hproc, (LPVOID)addr, &val, sizeof(unsigned char), 0);
 }
@@ -208,5 +212,5 @@ void func_write_double(_processInfo pi, long long int addr, double val)
 }
 void func_write_bytes(_processInfo pi, long long int addr, unsigned char* ref, int size)
 {
-	if (pi.state == found) WriteProcessMemory(pi.hproc, (LPVOID)addr, &ref, size, 0);
+	if (pi.state == found) WriteProcessMemory(pi.hproc, (LPVOID)addr, ref, size, 0);
 }

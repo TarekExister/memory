@@ -1,0 +1,3 @@
+﻿  Memory.c
+C:\Users\Tarek\Documents\GitHub\memory\Memory\Memory.c(226,124): warning C4047: '=': '__int64' differs in levels of indirection from 'LPVOID'
+  Memory.vcxproj -> C:\Users\Tarek\Documents\GitHub\memory\x64\Debug\Memory.lib

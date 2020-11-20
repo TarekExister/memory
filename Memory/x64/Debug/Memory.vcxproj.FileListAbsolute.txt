@@ -1,0 +1,2 @@
+C:\Users\Tarek\Documents\GitHub\memory\x64\Debug\Memory.pdb
+C:\Users\Tarek\Documents\GitHub\memory\Memory\x64\Debug\Memory.pdb
